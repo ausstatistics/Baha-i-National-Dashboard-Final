@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Baby, Sunrise, HandHeart, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BookOpen, Baby, Sunrise, HandHeart, Clock, TrendingUp, LayoutDashboard } from 'lucide-react';
+
+// --- Page Enum ---
+const PAGES = {
+    MAIN: 'Main Dashboard',
+    SURVEY: 'Bi-Annual Survey Data',
+};
 
 // --- Data Last Updated ---
 const lastUpdated = "June 16, 2025";
@@ -29,6 +35,23 @@ const staticData = [
     { id: 'VIC_TAS', region: 'Victoria and Tasmania', dmCount: 241, dmParticipants: 1475, dmFriends: 329, ccCount: 72, ccParticipants: 515, ccFriends: 262, jygCount: 39, jygParticipants: 225, jygFriends: 126, scCount: 84, scParticipants: 426, scFriends: 136 },
     { id: 'WC_AU', region: 'Western and Central Australia', dmCount: 330, dmParticipants: 1930, dmFriends: 688, ccCount: 111, ccParticipants: 603, ccFriends: 426, jygCount: 66, jygParticipants: 360, jygFriends: 266, scCount: 199, scParticipants: 728, scFriends: 208 },
 ];
+
+// --- Bi-Annual Survey Data ---
+const surveyData = [
+  { period: 'Oct-19', sc: 716, scP: 2845, scF: 908, dm: 2130, dmP: 12989, dmF: 4112, cc: 571, ccP: 3598, ccF: 2656, jyg: 227, jygP: 1346, jygF: 976 },
+  { period: 'Apr-20', sc: 701, scP: 2743, scF: 916, dm: 2152, dmP: 12104, dmF: 4069, cc: 609, ccP: 3812, ccF: 2785, jyg: 242, jygP: 1468, jygF: 1083 },
+  { period: 'Oct-20', sc: 896, scP: 3749, scF: 968, dm: 2437, dmP: 14053, dmF: 4025, cc: 567, ccP: 3430, ccF: 2509, jyg: 212, jygP: 1285, jygF: 913 },
+  { period: 'Apr-21', sc: 897, scP: 3726, scF: 931, dm: 2590, dmP: 14039, dmF: 4551, cc: 579, ccP: 3505, ccF: 2565, jyg: 223, jygP: 1384, jygF: 995 },
+  { period: 'Oct-21', sc: 959, scP: 4240, scF: 998, dm: 2504, dmP: 13596, dmF: 4526, cc: 510, ccP: 3613, ccF: 2513, jyg: 209, jygP: 1309, jygF: 961 },
+  { period: 'Apr-22', sc: 850, scP: 3657, scF: 820, dm: 2420, dmP: 12749, dmF: 4388, cc: 503, ccP: 3645, ccF: 2554, jyg: 220, jygP: 1336, jygF: 980 },
+  { period: 'Oct-22', sc: 840, scP: 3658, scF: 848, dm: 2551, dmP: 13875, dmF: 4750, cc: 467, ccP: 3169, ccF: 2391, jyg: 194, jygP: 1248, jygF: 924 },
+  { period: 'Apr-23', sc: 701, scP: 2872, scF: 742, dm: 2137, dmP: 13497, dmF: 4447, cc: 502, ccP: 4277, ccF: 2945, jyg: 179, jygP: 1155, jygF: 773 },
+  { period: 'Oct-23', sc: 653, scP: 2575, scF: 637, dm: 2022, dmP: 12213, dmF: 3652, cc: 465, ccP: 3525, ccF: 2392, jyg: 196, jygP: 1229, jygF: 766 },
+  { period: 'Apr-24', sc: 614, scP: 2572, scF: 672, dm: 2144, dmP: 12948, dmF: 3467, cc: 418, ccP: 2758, ccF: 2002, jyg: 193, jygP: 1139, jygF: 806 },
+  { period: 'Oct-24', sc: 631, scP: 2794, scF: 770, dm: 1964, dmP: 12101, dmF: 3196, cc: 450, ccP: 4747, ccF: 3511, jyg: 193, jygP: 1154, jygF: 871 },
+  { period: 'Apr-25', sc: 579, scP: 2552, scF: 655, dm: 1974, dmP: 11804, dmF: 3239, cc: 412, ccP: 4471, ccF: 3289, jyg: 180, jygP: 1027, jygF: 731 },
+];
+
 
 // --- Reusable Components ---
 const NationalOverviewTable = ({ data }) => {
@@ -242,22 +265,106 @@ const ParticipantDistribution = ({ data }) => {
     );
 };
 
-const Header = ({ updated }) => (
-    <header className="bg-white shadow-sm p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-800">Baha'i Activity Dashboard</h1>
-        <div className="flex items-center space-x-4">
-             <div className="flex items-center text-sm text-gray-500">
-                <Clock size={16} className="mr-2" />
-                <span>Last Updated: {updated}</span>
+const Header = ({ updated, activePage, setActivePage }) => (
+    <header className="bg-white shadow-sm">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+                 <h1 className="text-xl font-bold text-gray-800">Baha'i Activity Dashboard</h1>
+                 <div className="flex items-center space-x-4">
+                     <div className="flex items-center text-sm text-gray-500">
+                        <Clock size={16} className="mr-2" />
+                        <span>Last Updated: {updated}</span>
+                    </div>
+                     <img src="https://placehold.co/40x40/c4b5fd/4338ca?text=B" alt="User avatar" className="w-10 h-10 rounded-full"/>
+                </div>
             </div>
-             <img src="https://placehold.co/40x40/c4b5fd/4338ca?text=B" alt="User avatar" className="w-10 h-10 rounded-full"/>
         </div>
+         <nav className="border-t border-gray-200">
+             <div className="mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex space-x-4">
+                    <button onClick={() => setActivePage(PAGES.MAIN)} className={`flex items-center px-3 py-3 text-sm font-medium border-b-2 ${activePage === PAGES.MAIN ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                        <LayoutDashboard size={16} className="mr-2" />
+                        {PAGES.MAIN}
+                    </button>
+                     <button onClick={() => setActivePage(PAGES.SURVEY)} className={`flex items-center px-3 py-3 text-sm font-medium border-b-2 ${activePage === PAGES.SURVEY ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                         <TrendingUp size={16} className="mr-2" />
+                        {PAGES.SURVEY}
+                    </button>
+                </div>
+            </div>
+        </nav>
     </header>
 );
+
+const TrendChart = ({ data, dataKey, name, color }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{name} Trends</h3>
+        <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="period" interval={0} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey={dataKey.count} name="Number" stroke={color} strokeWidth={2} />
+                <Line type="monotone" dataKey={dataKey.participants} name="Participants" stroke={color} strokeDasharray="5 5" />
+                <Line type="monotone" dataKey={dataKey.friends} name="Friends" stroke={color} strokeDasharray="1 5" />
+            </LineChart>
+        </ResponsiveContainer>
+    </div>
+);
+
+
+const SurveyPage = () => (
+    <div>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <TrendChart data={surveyData} dataKey={{count: 'sc', participants: 'scP', friends: 'scF'}} name="Study Circles" color="#fbbf24" />
+            <TrendChart data={surveyData} dataKey={{count: 'dm', participants: 'dmP', friends: 'dmF'}} name="Devotional Meetings" color="#ef4444" />
+            <TrendChart data={surveyData} dataKey={{count: 'cc', participants: 'ccP', friends: 'ccF'}} name="Children's Classes" color="#34d399" />
+            <TrendChart data={surveyData} dataKey={{count: 'jyg', participants: 'jygP', friends: 'jygF'}} name="Junior Youth Groups" color="#60a5fa" />
+        </div>
+    </div>
+);
+
+const MainPage = ({ activityData, milestoneData }) => (
+    <>
+         <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-700 mb-4">Cluster Milestone Development</h2>
+            <ClusterMilestones data={milestoneData} />
+        </div>
+
+        <hr className="my-8 border-gray-300"/>
+
+        <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
+            <NationalOverviewTable data={nationalData} />
+        </div>
+
+        <hr className="my-8 border-gray-300"/>
+
+        <div>
+             <h2 className="text-2xl font-bold text-gray-700 mb-4">Regional Breakdown</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    <ActivityChart data={activityData} />
+                </div>
+                <div className="space-y-8">
+                    <ParticipantDistribution data={activityData} />
+                </div>
+                 <div className="lg:col-span-3">
+                    <ActivityDataTable data={activityData} />
+                </div>
+            </div>
+        </div>
+    </>
+);
+
 
 // --- Main App Component ---
 export default function App() {
     const [activityData, setActivityData] = useState([]);
+    const [activePage, setActivePage] = useState(PAGES.MAIN);
 
     useEffect(() => {
         // This ensures all Tailwind styles are available in any environment.
@@ -270,36 +377,10 @@ export default function App() {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
-        <Header updated={lastUpdated} />
+        <Header updated={lastUpdated} activePage={activePage} setActivePage={setActivePage} />
         <main className="p-4 sm:p-6 lg:p-8">
-             <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4">Cluster Milestone Development</h2>
-                <ClusterMilestones data={milestoneData} />
-            </div>
-
-            <hr className="my-8 border-gray-300"/>
-
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
-                <NationalOverviewTable data={nationalData} />
-            </div>
-
-            <hr className="my-8 border-gray-300"/>
-
-            <div>
-                 <h2 className="text-2xl font-bold text-gray-700 mb-4">Regional Breakdown</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
-                        <ActivityChart data={activityData} />
-                    </div>
-                    <div className="space-y-8">
-                        <ParticipantDistribution data={activityData} />
-                    </div>
-                     <div className="lg:col-span-3">
-                        <ActivityDataTable data={activityData} />
-                    </div>
-                </div>
-            </div>
+            {activePage === PAGES.MAIN && <MainPage activityData={activityData} milestoneData={milestoneData} />}
+            {activePage === PAGES.SURVEY && <SurveyPage />}
         </main>
     </div>
   );
