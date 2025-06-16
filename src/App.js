@@ -214,11 +214,27 @@ export default function App() {
     // Initialize Firebase and Auth
     useEffect(() => {
         try {
+            let firebaseConfig;
+
+            // Prioritize standard environment variables for production (Azure, Vercel, etc.)
+            if (process.env.REACT_APP_API_KEY) {
+                firebaseConfig = {
+                    apiKey: process.env.REACT_APP_API_KEY,
+                    authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+                    projectId: process.env.REACT_APP_PROJECT_ID,
+                    storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+                    messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+                    appId: process.env.REACT_APP_APP_ID,
+                };
+            } 
+            // Fallback to special environment variables for the interactive Canvas
             // eslint-disable-next-line no-undef
-            const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-            const firebaseConfig = JSON.parse(firebaseConfigStr);
-            
-            if (!firebaseConfig.apiKey) {
+            else if (typeof __firebase_config !== 'undefined' && __firebase_config !== '{}') {
+                // eslint-disable-next-line no-undef
+                firebaseConfig = JSON.parse(__firebase_config);
+            } 
+            // If no configuration is found, trigger offline mode
+            else {
                 throw new Error("Firebase configuration not found. Running in offline mode.");
             }
             
@@ -257,9 +273,8 @@ export default function App() {
     useEffect(() => {
         if (!db || !isAuthReady || isOffline) return;
 
-        // eslint-disable-next-line no-undef
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const collectionPath = `artifacts/${appId}/public/data/bahai-activities`;
+        const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
+        const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
         const activitiesCollection = collection(db, collectionPath);
 
         const seedData = async () => {
@@ -306,9 +321,8 @@ export default function App() {
 
     const handleSave = async () => {
         if (!db || isOffline) return;
-        // eslint-disable-next-line no-undef
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const collectionPath = `artifacts/${appId}/public/data/bahai-activities`;
+        const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
+        const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
 
         const batch = writeBatch(db);
         editedData.forEach(item => {
