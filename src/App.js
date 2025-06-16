@@ -166,6 +166,11 @@ export default function App() {
     const [activityData, setActivityData] = useState([]);
 
     useEffect(() => {
+        // This ensures all Tailwind styles are available in any environment.
+        const script = document.createElement('script');
+        script.src = 'https://cdn.tailwindcss.com';
+        document.head.appendChild(script);
+
         setActivityData(staticData);
     }, []);
 
