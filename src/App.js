@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Smile, Sun, Heart, Award } from 'lucide-react';
+import { BookOpen, Smile, Sun, Heart } from 'lucide-react';
 
 // --- National Data ---
 const nationalData = {
