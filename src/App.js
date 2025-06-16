@@ -273,6 +273,7 @@ export default function App() {
     useEffect(() => {
         if (!db || !isAuthReady || isOffline) return;
 
+        // eslint-disable-next-line no-undef
         const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
         const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
         const activitiesCollection = collection(db, collectionPath);
@@ -321,6 +322,7 @@ export default function App() {
 
     const handleSave = async () => {
         if (!db || isOffline) return;
+        // eslint-disable-next-line no-undef
         const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
         const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
 
