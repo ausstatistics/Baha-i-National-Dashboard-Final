@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Users, Smile, Sun, AlertTriangle, WifiOff } from 'lucide-react';
+import { BookOpen, Users, Smile, Sun } from 'lucide-react';
 
-// --- Firebase Imports ---
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, doc, onSnapshot, getDocs, writeBatch } from 'firebase/firestore';
-
-// --- Default Data for Initial Seeding ---
-const initialData = [
+// --- Static Data ---
+const staticData = [
     { id: 'NSW_ACT', region: 'New South Wales and Australian Capital Territory', ccCount: 119, ccParticipants: 2352, ccFriends: 1725, jygCount: 35, jygParticipants: 242, jygFriends: 188, scCount: 117, scParticipants: 612, scFriends: 156 },
     { id: 'NE_AU', region: 'North Eastern Australia', ccCount: 109, ccParticipants: 867, ccFriends: 706, jygCount: 47, jygParticipants: 225, jygFriends: 161, scCount: 150, scParticipants: 643, scFriends: 147 },
     { id: 'VIC_TAS', region: 'Victoria and Tasmania', ccCount: 81, ccParticipants: 724, ccFriends: 481, jygCount: 38, jygParticipants: 225, jygFriends: 130, scCount: 83, scParticipants: 466, scFriends: 142 },
@@ -157,16 +152,10 @@ const ParticipantDistribution = ({ data }) => {
     );
 };
 
-const Header = ({ isOffline }) => (
+const Header = () => (
     <header className="bg-white shadow-sm p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">Baha'i Activity Dashboard</h1>
         <div className="flex items-center space-x-4">
-             {isOffline && (
-                <div className="flex items-center space-x-2 text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full">
-                    <WifiOff className="w-5 h-5" />
-                    <span className="text-sm font-semibold">Offline Mode</span>
-                </div>
-             )}
              <img src="https://placehold.co/40x40/c4b5fd/4338ca?text=B" alt="User avatar" className="w-10 h-10 rounded-full"/>
         </div>
     </header>
@@ -174,114 +163,11 @@ const Header = ({ isOffline }) => (
 
 // --- Main App Component ---
 export default function App() {
-    const [db, setDb] = useState(null);
-    const [isAuthReady, setIsAuthReady] = useState(false);
     const [activityData, setActivityData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isOffline, setIsOffline] = useState(false);
 
-    // Initialize Firebase and Auth
     useEffect(() => {
-        try {
-            let firebaseConfig;
-
-            // Prioritize standard environment variables for production (Azure, Vercel, etc.)
-            if (process.env.REACT_APP_API_KEY) {
-                firebaseConfig = {
-                    apiKey: process.env.REACT_APP_API_KEY,
-                    authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-                    projectId: process.env.REACT_APP_PROJECT_ID,
-                    storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-                    messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-                    appId: process.env.REACT_APP_APP_ID,
-                };
-            } 
-            // Fallback to special environment variables for the interactive Canvas
-            // eslint-disable-next-line no-undef
-            else if (typeof __firebase_config !== 'undefined' && __firebase_config !== '{}') {
-                // eslint-disable-next-line no-undef
-                firebaseConfig = JSON.parse(__firebase_config);
-            } 
-            // If no configuration is found, trigger offline mode
-            else {
-                throw new Error("Firebase configuration not found. Running in offline mode.");
-            }
-            
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const firestore = getFirestore(app);
-            setDb(firestore);
-
-            const unsubscribe = onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    setIsAuthReady(true);
-                } else {
-                    // eslint-disable-next-line no-undef
-                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    if (initialAuthToken) {
-                        signInWithCustomToken(auth, initialAuthToken).catch(err => {
-                            console.error("Custom token sign-in error:", err);
-                            signInAnonymously(auth);
-                        });
-                    } else {
-                        signInAnonymously(auth);
-                    }
-                }
-            });
-             return () => unsubscribe();
-        } catch (e) {
-            console.warn("Firebase Init Warning:", e.message);
-            setIsOffline(true);
-            setActivityData(initialData);
-            setIsLoading(false);
-        }
+        setActivityData(staticData);
     }, []);
-
-    // Subscribe to Firestore data, now dependent on auth readiness
-    useEffect(() => {
-        if (!db || !isAuthReady || isOffline) return;
-
-        // eslint-disable-next-line no-undef
-        const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
-        const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
-        const activitiesCollection = collection(db, collectionPath);
-
-        const seedData = async () => {
-            try {
-                 const snapshot = await getDocs(activitiesCollection);
-                if (snapshot.empty) {
-                    console.log("No data found. Seeding initial data...");
-                    const batch = writeBatch(db);
-                    initialData.forEach(item => {
-                        const docRef = doc(db, collectionPath, item.id);
-                        batch.set(docRef, item);
-                    });
-                    await batch.commit();
-                }
-            } catch (err) {
-                console.error("Error during data seeding:", err);
-                setError("Failed to seed initial data.");
-            }
-        };
-
-        seedData();
-        
-        const unsubscribe = onSnapshot(activitiesCollection, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            const sortedData = data.sort((a,b) => a.id.localeCompare(b.id));
-            setActivityData(sortedData);
-            setError(null); 
-            setIsLoading(false);
-        }, (err) => {
-            console.error("Error fetching data with onSnapshot:", err);
-            setError("Failed to load real-time data. Please check permissions.");
-            setIsLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [db, isAuthReady, isOffline]);
-
 
     const totals = activityData.reduce((acc, curr) => ({
         ccCount: (acc.ccCount || 0) + curr.ccCount,
@@ -290,24 +176,10 @@ export default function App() {
         totalParticipants: (acc.totalParticipants || 0) + curr.ccParticipants + curr.jygParticipants + curr.scParticipants
     }), { ccCount: 0, jygCount: 0, scCount: 0, totalParticipants: 0 });
 
-    if (isLoading) {
-        return <div className="flex items-center justify-center min-h-screen bg-gray-50"><p className="text-gray-600">Loading Dashboard Data...</p></div>;
-    }
-    
-    if (error) {
-         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-700">
-                <AlertTriangle className="w-12 h-12 mb-4" />
-                <h2 className="text-xl font-semibold mb-2">An Error Occurred</h2>
-                <p>{error}</p>
-                <p className="mt-4 text-sm text-gray-500">Please check the console for more details.</p>
-            </div>
-        );
-    }
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
-        <Header isOffline={isOffline} />
+        <Header />
         <main className="p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <MetricCard title="Total Participants" value={totals.totalParticipants} icon={Users} iconBgColor="bg-indigo-500" />
