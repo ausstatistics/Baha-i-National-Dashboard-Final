@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Baby, Sunrise, HandHeart } from 'lucide-react';
+import { BookOpen, Baby, Sunrise, HandHeart, Clock } from 'lucide-react';
+
+// --- Data Last Updated ---
+const lastUpdated = "June 16, 2025";
 
 // --- National Data ---
 const nationalData = {
@@ -19,12 +22,12 @@ const milestoneData = [
 ];
 
 
-// --- Regional Static Data ---
+// --- Regional Static Data (Updated) ---
 const staticData = [
-    { id: 'NSW_ACT', region: 'New South Wales and Australian Capital Territory', dmCount: 932, dmParticipants: 5528, dmFriends: 1432, ccCount: 119, ccParticipants: 2352, ccFriends: 1725, jygCount: 35, jygParticipants: 242, jygFriends: 188, scCount: 117, scParticipants: 612, scFriends: 156 },
-    { id: 'NE_AU', region: 'North Eastern Australia', dmCount: 445, dmParticipants: 2512, dmFriends: 684, ccCount: 109, ccParticipants: 867, ccFriends: 706, jygCount: 47, jygParticipants: 225, jygFriends: 161, scCount: 150, scParticipants: 643, scFriends: 147 },
-    { id: 'VIC_TAS', region: 'Victoria and Tasmania', dmCount: 241, dmParticipants: 1475, dmFriends: 329, ccCount: 81, ccParticipants: 724, ccFriends: 481, jygCount: 38, jygParticipants: 225, jygFriends: 130, scCount: 83, scParticipants: 466, scFriends: 142 },
-    { id: 'WC_AU', region: 'Western and Central Australia', dmCount: 330, dmParticipants: 1930, dmFriends: 688, ccCount: 106, ccParticipants: 570, ccFriends: 404, jygCount: 60, jygParticipants: 352, jygFriends: 266, scCount: 239, scParticipants: 890, scFriends: 204 },
+    { id: 'NSW_ACT', region: 'New South Wales and Australia', ccCount: 116, ccParticipants: 2316, ccFriends: 1705, jygCount: 32, jygParticipants: 213, jygFriends: 149, scCount: 116, scParticipants: 603, scFriends: 173 },
+    { id: 'NE_AU', region: 'North Eastern Australia', ccCount: 112, ccParticipants: 878, ccFriends: 715, jygCount: 46, jygParticipants: 215, jygFriends: 154, scCount: 144, scParticipants: 613, scFriends: 145 },
+    { id: 'VIC_TAS', region: 'Victoria and Tasmania', ccCount: 72, ccParticipants: 515, ccFriends: 262, jygCount: 39, jygParticipants: 225, jygFriends: 126, scCount: 84, scParticipants: 426, scFriends: 136 },
+    { id: 'WC_AU', region: 'Western and Central Australia', ccCount: 111, ccParticipants: 603, ccFriends: 426, jygCount: 66, jygParticipants: 360, jygFriends: 266, scCount: 199, scParticipants: 728, scFriends: 208 },
 ];
 
 // --- Reusable Components ---
@@ -105,15 +108,14 @@ const ClusterMilestones = ({data}) => {
 const ActivityChart = ({ data }) => {
     // Mapping from full region name to abbreviation
     const regionAbbreviations = {
-        'New South Wales and Australian Capital Territory': 'NSW&ACT',
+        'New South Wales and Australia': 'NSW&ACT',
         'North Eastern Australia': 'NEA',
         'Victoria and Tasmania': 'VIC&TAS',
         'Western and Central Australia': 'WCA',
     };
 
     const chartData = data.map(d => ({
-        region: regionAbbreviations[d.region] || d.region, // Use abbreviation
-        devotionalMeetings: d.dmCount,
+        region: regionAbbreviations[d.region] || d.region,
         childrensClasses: d.ccCount,
         juniorYouthGroups: d.jygCount,
         studyCircles: d.scCount,
@@ -129,7 +131,6 @@ const ActivityChart = ({ data }) => {
                     <YAxis />
                     <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '0.5rem' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Bar dataKey="devotionalMeetings" name="Devotional Meetings" fill="#ef4444" />
                     <Bar dataKey="childrensClasses" name="Children's Classes" fill="#34d399" />
                     <Bar dataKey="juniorYouthGroups" name="Junior Youth Groups" fill="#60a5fa" />
                     <Bar dataKey="studyCircles" name="Study Circles" fill="#fbbf24" />
@@ -161,15 +162,11 @@ const ActivityDataTable = ({ data }) => {
                     <thead className="bg-gray-100 text-gray-600">
                         <tr>
                             <th rowSpan="2" className="p-3 font-semibold border-b border-gray-200 align-bottom">Region</th>
-                            <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Devotional Meetings</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Children's Classes</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Junior Youth Groups</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Study Circles</th>
                         </tr>
                         <tr className="bg-gray-50 text-gray-500">
-                            <th className="p-2 font-medium border-b border-l border-gray-200 text-center">No.</th>
-                            <th className="p-2 font-medium border-b border-gray-200 text-center">Participants</th>
-                            <th className="p-2 font-medium border-b border-gray-200 text-center">Friends</th>
                             <th className="p-2 font-medium border-b border-l border-gray-200 text-center">No.</th>
                             <th className="p-2 font-medium border-b border-gray-200 text-center">Participants</th>
                             <th className="p-2 font-medium border-b border-gray-200 text-center">Friends</th>
@@ -185,7 +182,7 @@ const ActivityDataTable = ({ data }) => {
                         {dataToDisplay.map((row) => (
                             <tr key={row.id} className={`border-b border-gray-200 ${row.region === 'Total' ? 'bg-gray-100 font-bold' : 'bg-white'}`}>
                                 <td className="p-3 text-gray-700">{row.region}</td>
-                                {['dmCount', 'dmParticipants', 'dmFriends', 'ccCount', 'ccParticipants', 'ccFriends', 'jygCount', 'jygParticipants', 'jygFriends', 'scCount', 'scParticipants', 'scFriends'].map(field => (
+                                {['ccCount', 'ccParticipants', 'ccFriends', 'jygCount', 'jygParticipants', 'jygFriends', 'scCount', 'scParticipants', 'scFriends'].map(field => (
                                     <td key={field} className="p-2 text-gray-600 text-center">
                                         {row[field]?.toLocaleString() || 0}
                                     </td>
@@ -203,14 +200,12 @@ const ActivityDataTable = ({ data }) => {
 const ParticipantDistribution = ({ data }) => {
     if (!data || data.length === 0) return null;
     const totals = data.reduce((acc, curr) => ({
-        dmParticipants: (acc.dmParticipants || 0) + curr.dmParticipants,
         ccParticipants: (acc.ccParticipants || 0) + curr.ccParticipants,
         jygParticipants: (acc.jygParticipants || 0) + curr.jygParticipants,
         scParticipants: (acc.scParticipants || 0) + curr.scParticipants,
     }), {});
 
     const participantDistributionData = [
-        { name: 'Devotional Meetings', value: totals.dmParticipants, fill: '#ef4444' },
         { name: 'Children\'s Classes', value: totals.ccParticipants, fill: '#34d399' },
         { name: 'Junior Youth Groups', value: totals.jygParticipants, fill: '#60a5fa' },
         { name: 'Study Circles', value: totals.scParticipants, fill: '#fbbf24' },
@@ -239,10 +234,14 @@ const ParticipantDistribution = ({ data }) => {
     );
 };
 
-const Header = () => (
+const Header = ({ updated }) => (
     <header className="bg-white shadow-sm p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">Baha'i Activity Dashboard</h1>
         <div className="flex items-center space-x-4">
+             <div className="flex items-center text-sm text-gray-500">
+                <Clock size={16} className="mr-2" />
+                <span>Last Updated: {updated}</span>
+            </div>
              <img src="https://placehold.co/40x40/c4b5fd/4338ca?text=B" alt="User avatar" className="w-10 h-10 rounded-full"/>
         </div>
     </header>
@@ -263,7 +262,7 @@ export default function App() {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
-        <Header />
+        <Header updated={lastUpdated} />
         <main className="p-4 sm:p-6 lg:p-8">
              <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-700 mb-4">Cluster Milestone Development</h2>
