@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Users, Smile, Sun } from 'lucide-react';
+import { BookOpen, Smile, Sun, Heart, Award } from 'lucide-react';
 
-// --- Static Data ---
+// --- National Data ---
+const nationalData = {
+    devotionalMeetings: { count: 1948, participants: 11445, friends: 3133 },
+    childrensClasses: { count: 412, participants: 4321, friends: 3117 },
+    juniorYouthGroups: { count: 184, participants: 1021, friends: 697 },
+    studyCircles: { count: 544, participants: 2372, friends: 663 },
+};
+
+// --- Cluster Milestone Data ---
+const milestoneData = [
+    { title: "Total No. of Clusters", value: 68 },
+    { title: "No. of Clusters with a Programme of Growth", value: 61 },
+    { title: "No. of Clusters with an Intensive Programme of Growth", value: 55 },
+    { title: "No. of Clusters where the Pattern of Activity Embraces Large Numbers", value: 22 },
+];
+
+
+// --- Regional Static Data ---
 const staticData = [
     { id: 'NSW_ACT', region: 'New South Wales and Australian Capital Territory', ccCount: 119, ccParticipants: 2352, ccFriends: 1725, jygCount: 35, jygParticipants: 242, jygFriends: 188, scCount: 117, scParticipants: 612, scFriends: 156 },
     { id: 'NE_AU', region: 'North Eastern Australia', ccCount: 109, ccParticipants: 867, ccFriends: 706, jygCount: 47, jygParticipants: 225, jygFriends: 161, scCount: 150, scParticipants: 643, scFriends: 147 },
@@ -11,17 +28,79 @@ const staticData = [
 ];
 
 // --- Reusable Components ---
-const MetricCard = ({ title, value, icon: Icon, iconBgColor }) => (
-  <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
-    <div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className="text-2xl font-bold text-gray-800">{value.toLocaleString()}</p>
+const NationalOverviewTable = ({ data }) => {
+    const activities = [
+        { name: "Devotional Meetings", data: data.devotionalMeetings, icon: Heart, color: 'bg-red-500' },
+        { name: "Children's Classes", data: data.childrensClasses, icon: Smile, color: 'bg-green-500' },
+        { name: "Junior Youth Groups", data: data.juniorYouthGroups, icon: Sun, color: 'bg-blue-500' },
+        { name: "Study Circles", data: data.studyCircles, icon: BookOpen, color: 'bg-amber-500' },
+    ];
+    
+    return (
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="p-3 text-sm font-semibold text-gray-600">Activity</th>
+                            <th className="p-3 text-sm font-semibold text-gray-600 text-center">Number</th>
+                            <th className="p-3 text-sm font-semibold text-gray-600 text-center">Total Participants</th>
+                            <th className="p-3 text-sm font-semibold text-gray-600 text-center">Friends of the Faith</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {activities.map(activity => (
+                            <tr key={activity.name} className="border-b last:border-b-0">
+                                <td className="p-3 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                        <div className={`p-2 rounded-full mr-3 ${activity.color}`}>
+                                            <activity.icon className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="font-medium text-gray-800">{activity.name}</span>
+                                    </div>
+                                </td>
+                                <td className="p-3 text-center text-gray-700">{activity.data.count.toLocaleString()}</td>
+                                <td className="p-3 text-center text-gray-700">{activity.data.participants.toLocaleString()}</td>
+                                <td className="p-3 text-center text-gray-700">{activity.data.friends.toLocaleString()}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+const MilestoneCard = ({ title, value }) => (
+    <div className="bg-gray-100 rounded-lg shadow-inner p-4 text-center w-52 h-40 flex flex-col justify-center">
+        <h4 className="text-sm font-semibold text-gray-600 flex-grow">{title}</h4>
+        <p className="text-4xl font-bold text-gray-800">{value}</p>
     </div>
-    <div className={`p-3 rounded-full ${iconBgColor}`}>
-      <Icon className="w-6 h-6 text-white" />
-    </div>
-  </div>
 );
+
+const MilestoneArrow = () => (
+    <div className="text-center text-gray-400 mx-2 sm:mx-4 my-2 sm:my-0">
+         <svg className="w-8 h-8 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+        </svg>
+        <p className="text-xs mt-1">of these</p>
+    </div>
+);
+
+
+const ClusterMilestones = ({data}) => {
+    return (
+        <div className="flex flex-col xl:flex-row items-center justify-around space-y-4 xl:space-y-0 xl:space-x-2">
+            {data.map((milestone, index) => (
+                <React.Fragment key={index}>
+                    <MilestoneCard title={milestone.title} value={milestone.value} />
+                    {index < data.length - 1 && <MilestoneArrow />}
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
+
 
 const ActivityChart = ({ data }) => {
     // Mapping from full region name to abbreviation
@@ -73,7 +152,7 @@ const ActivityDataTable = ({ data }) => {
     return (
         <div className="bg-white p-4 rounded-lg shadow-md col-span-1 lg:col-span-3">
             <div className="flex justify-between items-center mb-4 px-2">
-                 <h3 className="text-lg font-semibold text-gray-800">Detailed Activity Data</h3>
+                 <h3 className="text-lg font-semibold text-gray-800">Detailed Regional Data</h3>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -131,7 +210,7 @@ const ParticipantDistribution = ({ data }) => {
     
     return (
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Total Participant Distribution</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Regional Participant Distribution</h3>
             <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                     <Pie data={participantDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
@@ -174,34 +253,36 @@ export default function App() {
         setActivityData(staticData);
     }, []);
 
-    const totals = activityData.reduce((acc, curr) => ({
-        ccCount: (acc.ccCount || 0) + curr.ccCount,
-        jygCount: (acc.jygCount || 0) + curr.jygCount,
-        scCount: (acc.scCount || 0) + curr.scCount,
-        totalParticipants: (acc.totalParticipants || 0) + curr.ccParticipants + curr.jygParticipants + curr.scParticipants
-    }), { ccCount: 0, jygCount: 0, scCount: 0, totalParticipants: 0 });
-
-
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
         <Header />
         <main className="p-4 sm:p-6 lg:p-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <MetricCard title="Total Participants" value={totals.totalParticipants} icon={Users} iconBgColor="bg-indigo-500" />
-                <MetricCard title="Children's Classes" value={totals.ccCount} icon={Smile} iconBgColor="bg-green-500" />
-                <MetricCard title="Junior Youth Groups" value={totals.jygCount} icon={Sun} iconBgColor="bg-blue-500" />
-                <MetricCard title="Study Circles" value={totals.scCount} icon={BookOpen} iconBgColor="bg-amber-500" />
+             <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-700 mb-4">Cluster Milestone Development</h2>
+                <ClusterMilestones data={milestoneData} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <ActivityChart data={activityData} />
-                </div>
-                <div className="space-y-8">
-                    <ParticipantDistribution data={activityData} />
-                </div>
-                 <div className="lg:col-span-3">
-                    <ActivityDataTable data={activityData} />
+            <hr className="my-8 border-gray-300"/>
+
+            <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
+                <NationalOverviewTable data={nationalData} />
+            </div>
+
+            <hr className="my-8 border-gray-300"/>
+
+            <div>
+                 <h2 className="text-2xl font-bold text-gray-700 mb-4">Regional Breakdown</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <ActivityChart data={activityData} />
+                    </div>
+                    <div className="space-y-8">
+                        <ParticipantDistribution data={activityData} />
+                    </div>
+                     <div className="lg:col-span-3">
+                        <ActivityDataTable data={activityData} />
+                    </div>
                 </div>
             </div>
         </main>
