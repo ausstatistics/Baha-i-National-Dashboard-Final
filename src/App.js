@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Smile, Sun, Heart } from 'lucide-react';
+import { BookOpen, Baby, Sunrise, HandHeart } from 'lucide-react';
 
 // --- National Data ---
 const nationalData = {
@@ -21,18 +21,18 @@ const milestoneData = [
 
 // --- Regional Static Data ---
 const staticData = [
-    { id: 'NSW_ACT', region: 'New South Wales and Australian Capital Territory', ccCount: 119, ccParticipants: 2352, ccFriends: 1725, jygCount: 35, jygParticipants: 242, jygFriends: 188, scCount: 117, scParticipants: 612, scFriends: 156 },
-    { id: 'NE_AU', region: 'North Eastern Australia', ccCount: 109, ccParticipants: 867, ccFriends: 706, jygCount: 47, jygParticipants: 225, jygFriends: 161, scCount: 150, scParticipants: 643, scFriends: 147 },
-    { id: 'VIC_TAS', region: 'Victoria and Tasmania', ccCount: 81, ccParticipants: 724, ccFriends: 481, jygCount: 38, jygParticipants: 225, jygFriends: 130, scCount: 83, scParticipants: 466, scFriends: 142 },
-    { id: 'WC_AU', region: 'Western and Central Australia', ccCount: 106, ccParticipants: 570, ccFriends: 404, jygCount: 60, jygParticipants: 352, jygFriends: 266, scCount: 239, scParticipants: 890, scFriends: 204 },
+    { id: 'NSW_ACT', region: 'New South Wales and Australian Capital Territory', dmCount: 932, dmParticipants: 5528, dmFriends: 1432, ccCount: 119, ccParticipants: 2352, ccFriends: 1725, jygCount: 35, jygParticipants: 242, jygFriends: 188, scCount: 117, scParticipants: 612, scFriends: 156 },
+    { id: 'NE_AU', region: 'North Eastern Australia', dmCount: 445, dmParticipants: 2512, dmFriends: 684, ccCount: 109, ccParticipants: 867, ccFriends: 706, jygCount: 47, jygParticipants: 225, jygFriends: 161, scCount: 150, scParticipants: 643, scFriends: 147 },
+    { id: 'VIC_TAS', region: 'Victoria and Tasmania', dmCount: 241, dmParticipants: 1475, dmFriends: 329, ccCount: 81, ccParticipants: 724, ccFriends: 481, jygCount: 38, jygParticipants: 225, jygFriends: 130, scCount: 83, scParticipants: 466, scFriends: 142 },
+    { id: 'WC_AU', region: 'Western and Central Australia', dmCount: 330, dmParticipants: 1930, dmFriends: 688, ccCount: 106, ccParticipants: 570, ccFriends: 404, jygCount: 60, jygParticipants: 352, jygFriends: 266, scCount: 239, scParticipants: 890, scFriends: 204 },
 ];
 
 // --- Reusable Components ---
 const NationalOverviewTable = ({ data }) => {
     const activities = [
-        { name: "Devotional Meetings", data: data.devotionalMeetings, icon: Heart, color: 'bg-red-500' },
-        { name: "Children's Classes", data: data.childrensClasses, icon: Smile, color: 'bg-green-500' },
-        { name: "Junior Youth Groups", data: data.juniorYouthGroups, icon: Sun, color: 'bg-blue-500' },
+        { name: "Devotional Meetings", data: data.devotionalMeetings, icon: HandHeart, color: 'bg-red-500' },
+        { name: "Children's Classes", data: data.childrensClasses, icon: Baby, color: 'bg-green-500' },
+        { name: "Junior Youth Groups", data: data.juniorYouthGroups, icon: Sunrise, color: 'bg-blue-500' },
         { name: "Study Circles", data: data.studyCircles, icon: BookOpen, color: 'bg-amber-500' },
     ];
     
@@ -113,6 +113,7 @@ const ActivityChart = ({ data }) => {
 
     const chartData = data.map(d => ({
         region: regionAbbreviations[d.region] || d.region, // Use abbreviation
+        devotionalMeetings: d.dmCount,
         childrensClasses: d.ccCount,
         juniorYouthGroups: d.jygCount,
         studyCircles: d.scCount,
@@ -128,6 +129,7 @@ const ActivityChart = ({ data }) => {
                     <YAxis />
                     <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '0.5rem' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                    <Bar dataKey="devotionalMeetings" name="Devotional Meetings" fill="#ef4444" />
                     <Bar dataKey="childrensClasses" name="Children's Classes" fill="#34d399" />
                     <Bar dataKey="juniorYouthGroups" name="Junior Youth Groups" fill="#60a5fa" />
                     <Bar dataKey="studyCircles" name="Study Circles" fill="#fbbf24" />
@@ -159,11 +161,15 @@ const ActivityDataTable = ({ data }) => {
                     <thead className="bg-gray-100 text-gray-600">
                         <tr>
                             <th rowSpan="2" className="p-3 font-semibold border-b border-gray-200 align-bottom">Region</th>
+                            <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Devotional Meetings</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Children's Classes</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Junior Youth Groups</th>
                             <th colSpan="3" className="p-3 font-semibold border-b border-gray-200 text-center">Study Circles</th>
                         </tr>
                         <tr className="bg-gray-50 text-gray-500">
+                            <th className="p-2 font-medium border-b border-l border-gray-200 text-center">No.</th>
+                            <th className="p-2 font-medium border-b border-gray-200 text-center">Participants</th>
+                            <th className="p-2 font-medium border-b border-gray-200 text-center">Friends</th>
                             <th className="p-2 font-medium border-b border-l border-gray-200 text-center">No.</th>
                             <th className="p-2 font-medium border-b border-gray-200 text-center">Participants</th>
                             <th className="p-2 font-medium border-b border-gray-200 text-center">Friends</th>
@@ -179,7 +185,7 @@ const ActivityDataTable = ({ data }) => {
                         {dataToDisplay.map((row) => (
                             <tr key={row.id} className={`border-b border-gray-200 ${row.region === 'Total' ? 'bg-gray-100 font-bold' : 'bg-white'}`}>
                                 <td className="p-3 text-gray-700">{row.region}</td>
-                                {['ccCount', 'ccParticipants', 'ccFriends', 'jygCount', 'jygParticipants', 'jygFriends', 'scCount', 'scParticipants', 'scFriends'].map(field => (
+                                {['dmCount', 'dmParticipants', 'dmFriends', 'ccCount', 'ccParticipants', 'ccFriends', 'jygCount', 'jygParticipants', 'jygFriends', 'scCount', 'scParticipants', 'scFriends'].map(field => (
                                     <td key={field} className="p-2 text-gray-600 text-center">
                                         {row[field]?.toLocaleString() || 0}
                                     </td>
@@ -197,12 +203,14 @@ const ActivityDataTable = ({ data }) => {
 const ParticipantDistribution = ({ data }) => {
     if (!data || data.length === 0) return null;
     const totals = data.reduce((acc, curr) => ({
+        dmParticipants: (acc.dmParticipants || 0) + curr.dmParticipants,
         ccParticipants: (acc.ccParticipants || 0) + curr.ccParticipants,
         jygParticipants: (acc.jygParticipants || 0) + curr.jygParticipants,
         scParticipants: (acc.scParticipants || 0) + curr.scParticipants,
     }), {});
 
     const participantDistributionData = [
+        { name: 'Devotional Meetings', value: totals.dmParticipants, fill: '#ef4444' },
         { name: 'Children\'s Classes', value: totals.ccParticipants, fill: '#34d399' },
         { name: 'Junior Youth Groups', value: totals.jygParticipants, fill: '#60a5fa' },
         { name: 'Study Circles', value: totals.scParticipants, fill: '#fbbf24' },
