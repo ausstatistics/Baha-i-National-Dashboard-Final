@@ -296,36 +296,44 @@ const Header = ({ updated, activePage, setActivePage }) => (
     </header>
 );
 
-const TrendChart = ({ data, dataKey, name, color }) => (
+const TrendChart = ({ data, dataKey, name, colors }) => (
     <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{name} Trends</h3>
         <ResponsiveContainer width="100%" height={250}>
             <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" interval={0} />
+                <XAxis dataKey="period" interval={0} angle={-30} textAnchor="end" height={50} />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey={dataKey.count} name="Number" stroke={color} strokeWidth={2} />
-                <Line type="monotone" dataKey={dataKey.participants} name="Participants" stroke={color} strokeDasharray="5 5" />
-                <Line type="monotone" dataKey={dataKey.friends} name="Friends" stroke={color} strokeDasharray="1 5" />
+                <Line type="monotone" dataKey={dataKey.count} name="Number" stroke={colors.count} strokeWidth={2} />
+                <Line type="monotone" dataKey={dataKey.participants} name="Participants" stroke={colors.participants} strokeWidth={2} />
+                <Line type="monotone" dataKey={dataKey.friends} name="Friends" stroke={colors.friends} strokeWidth={2} />
             </LineChart>
         </ResponsiveContainer>
     </div>
 );
 
 
-const SurveyPage = () => (
-    <div>
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <TrendChart data={surveyData} dataKey={{count: 'sc', participants: 'scP', friends: 'scF'}} name="Study Circles" color="#fbbf24" />
-            <TrendChart data={surveyData} dataKey={{count: 'dm', participants: 'dmP', friends: 'dmF'}} name="Devotional Meetings" color="#ef4444" />
-            <TrendChart data={surveyData} dataKey={{count: 'cc', participants: 'ccP', friends: 'ccF'}} name="Children's Classes" color="#34d399" />
-            <TrendChart data={surveyData} dataKey={{count: 'jyg', participants: 'jygP', friends: 'jygF'}} name="Junior Youth Groups" color="#60a5fa" />
+const SurveyPage = () => {
+    const trendColors = {
+        count: '#8884d8',
+        participants: '#82ca9d',
+        friends: '#ffc658',
+    };
+
+    return (
+        <div>
+            <h2 className="text-2xl font-bold text-gray-700 mb-4">National Overview</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <TrendChart data={surveyData} dataKey={{count: 'sc', participants: 'scP', friends: 'scF'}} name="Study Circles" colors={trendColors} />
+                <TrendChart data={surveyData} dataKey={{count: 'dm', participants: 'dmP', friends: 'dmF'}} name="Devotional Meetings" colors={trendColors} />
+                <TrendChart data={surveyData} dataKey={{count: 'cc', participants: 'ccP', friends: 'ccF'}} name="Children's Classes" colors={trendColors} />
+                <TrendChart data={surveyData} dataKey={{count: 'jyg', participants: 'jygP', friends: 'jygF'}} name="Junior Youth Groups" colors={trendColors} />
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const MainPage = ({ activityData, milestoneData }) => (
     <>
