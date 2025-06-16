@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { BookOpen, Users, Smile, Sun, Edit, Save, XCircle, AlertTriangle, WifiOff } from 'lucide-react';
+import { BookOpen, Users, Smile, Sun, AlertTriangle, WifiOff } from 'lucide-react';
 
 // --- Firebase Imports ---
 import { initializeApp } from 'firebase/app';
@@ -63,7 +63,7 @@ const ActivityChart = ({ data }) => {
     );
 };
 
-const ActivityDataTable = ({ data, onSave, isEditMode, setEditMode, editedData, setEditedData, isOffline }) => {
+const ActivityDataTable = ({ data }) => {
     const totals = data.reduce((acc, curr) => {
         Object.keys(curr).forEach(key => {
             if (typeof curr[key] === 'number') {
@@ -73,31 +73,12 @@ const ActivityDataTable = ({ data, onSave, isEditMode, setEditMode, editedData, 
         return acc;
     }, {});
 
-    const handleEditChange = (id, field, value) => {
-        const numericValue = value === '' ? 0 : parseInt(value, 10);
-        if (isNaN(numericValue)) return;
-
-        setEditedData(prev => prev.map(row => 
-            row.id === id ? { ...row, [field]: numericValue } : row
-        ));
-    };
-
     const dataToDisplay = [...data, { ...totals, region: 'Total', id: 'total' }];
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-md col-span-1 lg:col-span-3">
             <div className="flex justify-between items-center mb-4 px-2">
                  <h3 className="text-lg font-semibold text-gray-800">Detailed Activity Data</h3>
-                 <div>
-                    {isEditMode ? (
-                        <div className="flex items-center space-x-2">
-                             <button onClick={onSave} className="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center text-sm font-medium"><Save className="w-4 h-4 mr-1"/> Save Changes</button>
-                             <button onClick={() => setEditMode(false)} className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center text-sm font-medium"><XCircle className="w-4 h-4 mr-1"/> Cancel</button>
-                        </div>
-                    ) : (
-                        <button onClick={() => setEditMode(true)} disabled={isOffline} className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"><Edit className="w-4 h-4 mr-1"/> Edit Data</button>
-                    )}
-                </div>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -125,17 +106,8 @@ const ActivityDataTable = ({ data, onSave, isEditMode, setEditMode, editedData, 
                             <tr key={row.id} className={`border-b border-gray-200 ${row.region === 'Total' ? 'bg-gray-100 font-bold' : 'bg-white'}`}>
                                 <td className="p-3 text-gray-700">{row.region}</td>
                                 {['ccCount', 'ccParticipants', 'ccFriends', 'jygCount', 'jygParticipants', 'jygFriends', 'scCount', 'scParticipants', 'scFriends'].map(field => (
-                                    <td key={field} className="p-1 text-gray-600 text-center">
-                                        {(isEditMode && row.region !== 'Total') ? (
-                                            <input 
-                                                type="number" 
-                                                value={editedData.find(d => d.id === row.id)?.[field] || 0}
-                                                onChange={(e) => handleEditChange(row.id, field, e.target.value)}
-                                                className="w-20 p-1 text-center bg-indigo-50 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                            />
-                                        ) : (
-                                            <span className="p-2">{row[field]?.toLocaleString() || 0}</span>
-                                        )}
+                                    <td key={field} className="p-2 text-gray-600 text-center">
+                                        {row[field]?.toLocaleString() || 0}
                                     </td>
                                 ))}
                             </tr>
@@ -205,8 +177,6 @@ export default function App() {
     const [db, setDb] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [activityData, setActivityData] = useState([]);
-    const [isEditMode, setEditMode] = useState(false);
-    const [editedData, setEditedData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isOffline, setIsOffline] = useState(false);
@@ -264,7 +234,6 @@ export default function App() {
             console.warn("Firebase Init Warning:", e.message);
             setIsOffline(true);
             setActivityData(initialData);
-            setEditedData(initialData);
             setIsLoading(false);
         }
     }, []);
@@ -302,7 +271,6 @@ export default function App() {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             const sortedData = data.sort((a,b) => a.id.localeCompare(b.id));
             setActivityData(sortedData);
-            setEditedData(sortedData);
             setError(null); 
             setIsLoading(false);
         }, (err) => {
@@ -314,26 +282,6 @@ export default function App() {
         return () => unsubscribe();
     }, [db, isAuthReady, isOffline]);
 
-    useEffect(() => {
-        if (!isEditMode) {
-            setEditedData(activityData);
-        }
-    }, [isEditMode, activityData]);
-
-    const handleSave = async () => {
-        if (!db || isOffline) return;
-        // eslint-disable-next-line no-undef
-        const dashboardId = process.env.REACT_APP_DASHBOARD_ID || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
-        const collectionPath = `artifacts/${dashboardId}/public/data/bahai-activities`;
-
-        const batch = writeBatch(db);
-        editedData.forEach(item => {
-            const docRef = doc(db, collectionPath, item.id);
-            batch.set(docRef, item);
-        });
-        await batch.commit();
-        setEditMode(false);
-    };
 
     const totals = activityData.reduce((acc, curr) => ({
         ccCount: (acc.ccCount || 0) + curr.ccCount,
@@ -376,7 +324,7 @@ export default function App() {
                     <ParticipantDistribution data={activityData} />
                 </div>
                  <div className="lg:col-span-3">
-                    <ActivityDataTable data={activityData} onSave={handleSave} isEditMode={isEditMode} setEditMode={setEditMode} editedData={editedData} setEditedData={setEditedData} isOffline={isOffline} />
+                    <ActivityDataTable data={activityData} />
                 </div>
             </div>
         </main>
