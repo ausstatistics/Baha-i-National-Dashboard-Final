@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { BookOpen, Baby, Sunrise, HandHeart, Clock, TrendingUp, LayoutDashboard } from 'lucide-react';
+import { BookOpen, Baby, Sunrise, HandHeart, Clock, TrendingUp, LayoutDashboard, GanttChartSquare, CheckCircle2, XCircle } from 'lucide-react';
 
 // --- Page Enum ---
 const PAGES = {
     MAIN: 'Main Dashboard',
     SURVEY: 'Bi-Annual Survey Data',
+    CLUSTER_DEV: 'Cluster Development',
 };
 
 // --- Data Last Updated ---
@@ -51,6 +52,117 @@ const surveyData = [
   { period: 'Oct-24', sc: 631, scP: 2794, scF: 770, dm: 1964, dmP: 12101, dmF: 3196, cc: 450, ccP: 4747, ccF: 3511, jyg: 193, jygP: 1154, jygF: 871 },
   { period: 'Apr-25', sc: 579, scP: 2552, scF: 655, dm: 1974, dmP: 11804, dmF: 3239, cc: 412, ccP: 4471, ccF: 3289, jyg: 180, jygP: 1027, jygF: 731 },
 ];
+
+// --- Cluster Development Data (Corrected) ---
+const clusterDevelopmentData = [
+    {
+        region: "New South Wales & Australian Capital Territory",
+        groupings: [
+            { name: "Sydney Grouping", clusters: [ { name: "Sydney", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Wentworth", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Macarthur Highlands", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "ACT SE Grouping", clusters: [ { name: "ACT SE", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Illawarra", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG", "IPG+"] }, { name: "Riverina", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "Greater Hunter Grouping", clusters: [ { name: "Greater Hunter", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Mid-North Coast", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Northern Slopes", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] } ] },
+            { name: "Wambuul Baaka Grouping", clusters: [ { name: "Wambuul-Baaka", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Central West", milestones: ["PG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Far West", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] }
+        ]
+    },
+    {
+        region: "Victoria and Tasmania",
+        groupings: [
+            { name: "Melbourne Grouping", clusters: [ { name: "Melbourne", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Gippsland", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] } ] },
+            { name: "Southern Tasmania Grouping", clusters: [ { name: "Southern Tasmania", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Northern Tasmania", milestones: ["PG", "PG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "Grampians Grouping", clusters: [ { name: "Grampians", milestones: ["IPG+", "IPG+", "IPG", "IPG+", "IPG", "IPG+", "IPG+"] }, { name: "Werribee River", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Barwon", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Hume", milestones: ["IPG", "IPG", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Murray", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] }
+        ]
+    },
+    {
+        region: "North-Eastern Australia",
+        groupings: [
+            { name: "North Subregion", clusters: [ { name: "Cassowary", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Greater Whitsunday", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "North West", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Torres Strait", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Townsville", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "Central Subregion", clusters: [ { name: "Burnett", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Central Highlands", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Mari", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Moreton Bay", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Wide Bay", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "South Subregion", clusters: [ { name: "Brisbane Bayside", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG-", "IPG+", "IPG+"] }, { name: "Ipswich", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG", "IPG+", "IPG+"] }, { name: "Logan", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Toowoomba", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] },
+            { name: "Border Subregion", clusters: [ { name: "Far North Coast NSW", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Gold Coast", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Scenic Rim", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Southern Downs", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] } ] }
+        ]
+    },
+    {
+        region: "Western and Central Australia",
+        groupings: [
+            { name: "Main Grouping", clusters: [
+                { name: "Perth", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Greater Adelaide", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Top End", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "Mbantua", milestones: ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"] }, { name: "South West WA", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Peel", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Fleurieu", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "MacDonnell", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "South East SA", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Central Desert", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Great Southern", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Pilbara", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Murray Mallee", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Wheatbelt", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Midwest", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Kimberly West", milestones: ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"] }, { name: "Flinders", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] }, { name: "Eyre", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] }, { name: "Goldfields South", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] }, { name: "Gascoyne", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] }, { name: "Katherine", milestones: ["PG", "PG", "PG", "PG", "PG", "PG", "PG"] },
+                { name: "APY Lands", milestones: [null, null, null, null, null, null, null] }, { name: "Barkly", milestones: [null, null, null, null, null, null, null] }, { name: "Arnhem", milestones: [null, null, null, null, null, null, null] }, { name: "Greater Goldfields", milestones: [null, null, null, null, null, null, null] }, { name: "Kimberley East", milestones: [null, null, null, null, null, null, null] }, { name: "Tiwi", milestones: [null, null, null, null, null, null, null] }, { name: "Goldfields North", milestones: [null, null, null, null, null, null, null] },
+            ]}
+        ]
+    }
+];
+const clusterTimePeriods = ["Apr-22", "Oct-22", "Apr-23", "Oct-23", "Apr-24", "Oct-24", "Apr-25"];
+
+// --- Milestone Forecast Data ---
+const milestoneForecasts = {
+    "Brisbane Bayside": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Burnett": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Torres Strait": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Cassowary": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Greater Whitsunday": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Central Highlands": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Far North Coast NSW": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Wide Bay": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Gold Coast": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Mari": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Moreton Bay": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "North West": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+"],
+    "Scenic Rim": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+"],
+    "Ipswich": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Southern Downs": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+"],
+    "Sunshine Coast": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Toowoomba": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Townsville": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Central West": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+"],
+    "Far West": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+"],
+    "Murray": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+"],
+    "Northern Slopes": ["PG", "PG", "PG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "ACT SE": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Barwon": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Gippsland": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Grampians": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Greater Hunter": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Hume": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Illawarra": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Macarthur Highlands": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Melbourne": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Mid-North Coast": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Northern Tasmania": ["IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Riverina": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Southern Tasmania": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Sydney": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Wambuul-Baaka": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Wentworth": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Werribee River": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "APY Lands": ["Unopened", "Unopened", "Unopened", "Unopened", "Unopened", "Opened", "PG", "PG", "IPG", "IPG"],
+    "Arnhem": ["Unopened", "Unopened", "Unopened", "Opened", "PG", "PG", "IPG", "IPG", "IPG", "IPG"],
+    "Barkly": ["Unopened", "Unopened", "Opened", "PG", "PG", "PG", "IPG", "IPG", "IPG", "IPG"],
+    "Kimberley East": ["Unopened", "Unopened", "Opened", "PG", "PG", "PG", "IPG", "IPG", "IPG", "IPG"],
+    "Eyre": ["PG", "PG", "PG", "PG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+"],
+    "Flinders": ["PG", "PG", "PG", "PG", "PG", "IPG", "IPG", "IPG", "IPG", "IPG+"],
+    "Gascoyne": ["PG", "PG", "PG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Great Southern": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Goldfields North": ["Unopened", "Unopened", "Unopened", "Unopened", "Opened", "Opened", "PG", "PG", "PG", "IPG"],
+    "Peel": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Perth": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "South East SA": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "South West WA": ["IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Goldfields South": ["PG", "PG", "PG", "PG", "PG", "PG", "PG", "PG", "IPG", "IPG"],
+    "Tiwi": ["Unopened", "Unopened", "Unopened", "Opened", "PG", "PG", "IPG", "IPG", "IPG", "IPG"],
+    "Top End": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Kimberly West": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "West Pilbara": ["IPG", "IPG", "IPG", "IPG", "IPG-", "IPG-", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Wheatbelt": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Greater Adelaide": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Mbantua": ["IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Fleurieu": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"],
+    "MacDonnell": ["IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Central Desert": ["IPG", "IPG", "IPG", "IPG", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+", "IPG+"],
+    "Midwest": ["IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG", "IPG"],
+    "Katherine": ["PG", "PG", "PG", "PG", "PG", "PG", "PG", "PG", "PG", "PG"],
+    "Greater Goldfields": ["Unopened", "Unopened", "Unopened", "Unopened", "Opened", "Opened", "PG", "PG", "PG", "PG"],
+};
+const forecastTimePeriods = ["2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030", "2031"];
 
 
 // --- Reusable Components ---
@@ -129,7 +241,6 @@ const ClusterMilestones = ({data}) => {
 
 
 const ActivityChart = ({ data }) => {
-    // Mapping from full region name to abbreviation
     const regionAbbreviations = {
         'New South Wales and Australia': 'NSW&ACT',
         'North Eastern Australia': 'NEA',
@@ -286,9 +397,13 @@ const Header = ({ updated, activePage, setActivePage }) => (
                         <LayoutDashboard size={16} className="mr-2" />
                         {PAGES.MAIN}
                     </button>
-                     <button onClick={() => setActivePage(PAGES.SURVEY)} className={`flex items-center px-3 py-3 text-sm font-medium border-b-2 ${activePage === PAGES.SURVEY ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                    <button onClick={() => setActivePage(PAGES.SURVEY)} className={`flex items-center px-3 py-3 text-sm font-medium border-b-2 ${activePage === PAGES.SURVEY ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
                          <TrendingUp size={16} className="mr-2" />
                         {PAGES.SURVEY}
+                    </button>
+                    <button onClick={() => setActivePage(PAGES.CLUSTER_DEV)} className={`flex items-center px-3 py-3 text-sm font-medium border-b-2 ${activePage === PAGES.CLUSTER_DEV ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                         <GanttChartSquare size={16} className="mr-2" />
+                        {PAGES.CLUSTER_DEV}
                     </button>
                 </div>
             </div>
@@ -368,6 +483,149 @@ const MainPage = ({ activityData, milestoneData }) => (
     </>
 );
 
+const getMilestoneStyle = (milestone) => {
+    if (!milestone) return 'bg-gray-100 text-gray-400';
+    if (milestone.toLowerCase().includes('unopened')) return 'bg-gray-300 text-gray-600';
+    if (milestone.toLowerCase().includes('opened')) return 'bg-orange-200 text-orange-800';
+    if (milestone.includes('IPG+')) return 'bg-green-200 text-green-800';
+    if (milestone.includes('IPG')) return 'bg-blue-200 text-blue-800';
+    if (milestone.includes('PG')) return 'bg-yellow-200 text-yellow-800';
+    return 'bg-gray-100 text-gray-400';
+};
+
+const getForecastStatus = (actual, forecast) => {
+    if (!actual || !forecast) return { icon: null, color: '' };
+    if (forecast.toLowerCase().includes('unopened') && actual) return { icon: CheckCircle2, color: 'text-green-500' };
+    if (forecast.toLowerCase().includes('opened') && actual !== 'Unopened') return { icon: CheckCircle2, color: 'text-green-500' };
+
+    const milestoneOrder = { "PG": 1, "IPG": 2, "IPG-": 2, "IPG+": 3 };
+    const actualValue = milestoneOrder[actual.replace(/\s+/g, '')] || 0;
+    const forecastValue = milestoneOrder[forecast.replace(/\s+/g, '')] || 0;
+
+    if (actualValue >= forecastValue) {
+        return { icon: CheckCircle2, color: 'text-green-500' };
+    }
+    return { icon: XCircle, color: 'text-red-500' };
+}
+
+const ClusterDevelopmentPage = () => {
+    const regionalSummary = clusterDevelopmentData.map(region => {
+        const counts = { 'IPG+': 0, 'IPG': 0, 'PG': 0, 'IPG-': 0, total: 0 };
+        region.groupings.forEach(g => {
+            g.clusters.forEach(c => {
+                const latestMilestone = c.milestones[c.milestones.length - 1];
+                if(latestMilestone) {
+                    if(latestMilestone.includes('IPG+')) counts['IPG+']++;
+                    else if(latestMilestone.includes('IPG-')) counts['IPG-']++;
+                    else if(latestMilestone.includes('IPG')) counts['IPG']++;
+                    else if(latestMilestone.includes('PG')) counts['PG']++;
+                }
+                counts.total++;
+            });
+        });
+        return { name: region.region, ...counts };
+    });
+
+
+    return (
+        <div>
+            <div className="mb-8">
+                 <h2 className="text-2xl font-bold text-gray-700 mb-4">Regional Milestone Summary ({clusterTimePeriods[clusterTimePeriods.length - 1]})</h2>
+                 <div className="bg-white p-4 rounded-lg shadow-md">
+                     <table className="w-full text-left">
+                         <thead className="bg-gray-100">
+                             <tr>
+                                <th className="p-3 font-semibold text-gray-600">Region</th>
+                                <th className="p-3 font-semibold text-gray-600 text-center">IPG+</th>
+                                <th className="p-3 font-semibold text-gray-600 text-center">IPG</th>
+                                <th className="p-3 font-semibold text-gray-600 text-center">PG</th>
+                                <th className="p-3 font-semibold text-gray-600 text-center">Total Clusters</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             {regionalSummary.map(region => (
+                                 <tr key={region.name} className="border-b last:border-b-0">
+                                     <td className="p-3 font-medium text-gray-800">{region.name}</td>
+                                     <td className="p-3 text-center text-gray-700">{region['IPG+']}</td>
+                                     <td className="p-3 text-center text-gray-700">{region['IPG'] + region['IPG-']}</td>
+                                     <td className="p-3 text-center text-gray-700">{region['PG']}</td>
+                                     <td className="p-3 text-center font-bold text-gray-800">{region.total}</td>
+                                 </tr>
+                             ))}
+                         </tbody>
+                     </table>
+                 </div>
+            </div>
+
+             <hr className="my-8 border-gray-300"/>
+
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <ForecastTable title="First Phase (Ridván 2026)" phase={1} />
+              <hr className="my-8 border-gray-300"/>
+              <ForecastTable title="Second Phase (Ridván 2031)" phase={2} />
+            </div>
+        </div>
+    );
+};
+
+const ForecastTable = ({ title, phase }) => {
+  const startIndex = phase === 1 ? 0 : 5;
+  const endIndex = phase === 1 ? 5 : 10;
+  
+  return (
+    <div className="mb-8">
+      <h3 className="text-xl font-semibold text-gray-700 mb-4">{title}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th className="p-2 font-semibold bg-gray-100 border text-gray-600" rowSpan="2">Cluster</th>
+              {forecastTimePeriods.slice(startIndex, endIndex).map(period => <th key={period} className="p-2 text-sm font-semibold bg-gray-100 border text-gray-600 text-center" colSpan="2">Ridván {period}</th>)}
+            </tr>
+            <tr>
+              {forecastTimePeriods.slice(startIndex, endIndex).map(period => (
+                <React.Fragment key={period}>
+                  <th className="p-2 text-xs font-semibold bg-gray-50 border text-gray-500 text-center">Actual</th>
+                  <th className="p-2 text-xs font-semibold bg-gray-50 border text-gray-500 text-center">Forecast</th>
+                </React.Fragment>
+              ))}
+            </tr>
+          </thead>
+          {clusterDevelopmentData.map(region => (
+            <tbody key={region.region}>
+              <tr><td colSpan={11} className="p-2 bg-gray-200 font-bold text-gray-800">{region.region}</td></tr>
+              {region.groupings.flatMap(g => g.clusters).map(cluster => {
+                  const forecast = milestoneForecasts[cluster.name];
+                  return (
+                       <tr key={cluster.name} className="border-b last:border-b-0">
+                          <td className="p-2 border-l border-r font-medium text-sm text-gray-700">{cluster.name}</td>
+                          {forecastTimePeriods.slice(startIndex, endIndex).map((year, i) => {
+                              const actualIndex = startIndex + i;
+                              const actual = cluster.milestones[actualIndex * 2]; // Use Apr data for Ridvan comparison
+                              const forecastValue = forecast ? forecast[actualIndex] : null;
+                              const status = getForecastStatus(actual, forecastValue);
+                              return (
+                                  <React.Fragment key={i}>
+                                      <td className={`p-2 text-xs font-mono text-center border-r ${getMilestoneStyle(actual)}`}>{actual || '-'}</td>
+                                       <td className={`p-2 text-xs font-mono text-center border-r`}>
+                                          <div className="flex items-center justify-center">
+                                              <span>{forecastValue || '-'}</span>
+                                              {status.icon && <status.icon size={14} className={`ml-2 ${status.color}`} />}
+                                          </div>
+                                       </td>
+                                  </React.Fragment>
+                              )
+                          })}
+                       </tr>
+                  )
+              })}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </div>
+  )
+}
 
 // --- Main App Component ---
 export default function App() {
@@ -389,6 +647,7 @@ export default function App() {
         <main className="p-4 sm:p-6 lg:p-8">
             {activePage === PAGES.MAIN && <MainPage activityData={activityData} milestoneData={milestoneData} />}
             {activePage === PAGES.SURVEY && <SurveyPage />}
+            {activePage === PAGES.CLUSTER_DEV && <ClusterDevelopmentPage />}
         </main>
     </div>
   );
